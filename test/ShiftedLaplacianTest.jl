@@ -1,8 +1,7 @@
 using jInv.Mesh;
 using ForwardHelmholtz
 using Multigrid
-#import EikonalInv.expandModelNearest
-#import EikonalInv.addAbsorbingLayer
+
 
 function My_sub2ind(n::Array{Int64},sub::Array{Int64})
 if length(sub)==2
@@ -22,11 +21,11 @@ end
 # m = readdlm("SEGmodel2Dsalt.dat"); m = m'; m = m*1e-3;
 m = 1.5*ones(256,128);
 
-#m = EikonalInv.expandModelNearest(m,[256,128],[128,64]);
+
 Minv = getRegularMesh([0.0,13.5,0.0,4.2],collect(size(m))-1);
 
 pad = 16;
-#(m,Minv) = EikonalInv.addAbsorbingLayer(m,Minv,pad);
+
 
 m = 1./m.^2
 

@@ -16,15 +16,12 @@ else
 end
 end
 
-
 # m = readdlm("SEGmodel2Dsalt.dat"); m = m';
 m = ones(256,128);
 m = m*1e-3;
-#m = EikonalInv.expandModelNearest(m,[256,128],[128,64]);
 Minv = getRegularMesh([0.0,13.5,0.0,4.2],collect(size(m))-1);
 
 pad = 16;
-#(m,Minv) = EikonalInv.addAbsorbingLayer(m,Minv,pad);
 
 m = ones(size(m));
 m = 1./m.^2
