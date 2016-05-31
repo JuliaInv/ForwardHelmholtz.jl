@@ -32,9 +32,9 @@ end
 
 function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,doTranspose=0)
 	
-	# if param.doClear==1
-		# clear!(param.MG);
-	# end
+	if param.doClear==1
+		clear!(param.MG);
+	end
 	if vecnorm(B) == 0.0
 		X = zeros(eltype(B),size(B));
 		return X, param;
@@ -45,7 +45,7 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 	
 	# build preconditioner
 	if hierarchyExists(param.MG)==false
-		MGsetup(ShiftedHT,param.MG,TYPE,nrhs,true);
+		MGsetup(ShiftedHT,param.MG,TYPE,nrhs,false);
 	end
 	
 	param.MG = adjustMemoryForNumRHS(param.MG,Complex128,size(B,2));
@@ -73,7 +73,6 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 			return Az;
 		end
 		X, param.MG,num_iter = solveBiCGSTAB_MG(Afun,param.MG,B,Array(eltype(B),0),true);
-		println("Relative norm: ",vecnorm(Afun(X) - B)./vecnorm(B))
 	end
 	
 	if num_iter >= param.MG.maxOuterIter - 1
