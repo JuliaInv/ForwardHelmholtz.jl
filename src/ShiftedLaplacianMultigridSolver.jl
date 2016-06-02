@@ -32,6 +32,9 @@ end
 
 function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,doTranspose=0)
 	
+	if size(B,2) == 1
+		B = vec(B);
+	end
 	if param.doClear==1
 		clear!(param.MG);
 	end
@@ -72,7 +75,7 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 			Hfun(one(eltype(z)),z,zero(eltype(z)),Az);
 			return Az;
 		end
-		X, param.MG,num_iter = solveBiCGSTAB_MG(Afun,param.MG,B,Array(eltype(B),0),true);
+		X, param.MG,num_iter = solveBiCGSTAB_MG(Afun,param.MG,B,Array(eltype(B),0),false);
 	end
 	
 	if num_iter >= param.MG.maxOuterIter - 1
