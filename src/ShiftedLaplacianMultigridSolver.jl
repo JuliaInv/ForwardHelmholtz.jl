@@ -51,8 +51,6 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 		MGsetup(ShiftedHT,param.MG,TYPE,nrhs,false);
 	end
 	
-	param.MG = adjustMemoryForNumRHS(param.MG,Complex128,size(B,2));
-	
 	if (doTranspose != param.MG.doTranspose)
 		transposeHierarchy(param.MG);
 	end
@@ -69,7 +67,6 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 	if param.Krylov=="GMRES"
 		X, param.MG,num_iter = solveGMRES_MG(Hfun,param.MG,B,Array(eltype(B),0),true);
 	elseif param.Krylov=="BiCGSTAB"
-		param.MG = adjustMemoryForNumRHS(param.MG,eltype(B),size(B,2));
 		Az = zeros(eltype(B),size(B));
 		function Afun(z::ArrayTypes)
 			Hfun(one(eltype(z)),z,zero(eltype(z)),Az);
