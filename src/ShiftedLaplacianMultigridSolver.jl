@@ -8,18 +8,19 @@ type ShiftedLaplacianMultigridSolver <: AbstractSolver
 	MG				:: MGparam
 	shift			:: Float64
 	Krylov			:: ASCIIString
-	doClear			:: Int64 # flag to clear factorization	
+	doClear			:: Int64 # flag to clear factorization
+	verbose			:: Bool
 end
 
 import jInv.LinearSolvers.copySolver;
 function copySolver(s::ShiftedLaplacianMultigridSolver)
 	# copies absolutely what's necessary.
 	clear(s.M);
-	return getShiftedLaplacianMultigridSolver(s.M,Multigrid.copySolver(s.MG),s.shift,s.Krylov);
+	return getShiftedLaplacianMultigridSolver(s.M,Multigrid.copySolver(s.MG),s.shift,s.Krylov,s.verbose);
 end
 
-function getShiftedLaplacianMultigridSolver(M::RegularMesh, MG::MGparam,shift::Float64,Krylov::ASCIIString="BiCGSTAB")
-	return ShiftedLaplacianMultigridSolver(M,zeros(0),0.0,MG,shift,Krylov,0);
+function getShiftedLaplacianMultigridSolver(M::RegularMesh, MG::MGparam,shift::Float64,Krylov::ASCIIString="BiCGSTAB",verbose::Bool = false)
+	return ShiftedLaplacianMultigridSolver(M,zeros(0),0.0,MG,shift,Krylov,0,verbose);
 end
 
 function updateParam(solver::ShiftedLaplacianMultigridSolver,M::RegularMesh,m::Array{Float64},omega:: Float64)
@@ -48,7 +49,7 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 	
 	# build preconditioner
 	if hierarchyExists(param.MG)==false
-		MGsetup(ShiftedHT,param.MG,TYPE,nrhs,false);
+		MGsetup(ShiftedHT,param.MG,TYPE,nrhs,param.verbose);
 	end
 	
 	if (doTranspose != param.MG.doTranspose)
@@ -65,14 +66,14 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 	end
 	
 	if param.Krylov=="GMRES"
-		X, param.MG,num_iter = solveGMRES_MG(Hfun,param.MG,B,Array(eltype(B),0),true);
+		X, param.MG,num_iter = solveGMRES_MG(Hfun,param.MG,B,Array(eltype(B),0),param.verbose);
 	elseif param.Krylov=="BiCGSTAB"
 		Az = zeros(eltype(B),size(B));
 		function Afun(z::ArrayTypes)
 			Hfun(one(eltype(z)),z,zero(eltype(z)),Az);
 			return Az;
 		end
-		X, param.MG,num_iter = solveBiCGSTAB_MG(Afun,param.MG,B,Array(eltype(B),0),false);
+		X, param.MG,num_iter = solveBiCGSTAB_MG(Afun,param.MG,B,Array(eltype(B),0),param.verbose);
 	end
 	
 	if num_iter >= param.MG.maxOuterIter - 1
