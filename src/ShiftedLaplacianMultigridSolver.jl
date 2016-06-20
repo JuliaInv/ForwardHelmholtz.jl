@@ -57,7 +57,7 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 	end
 	ShiftedHT = param.MG.As[1];
 	MShift = GetHelmholtzShiftOP(param.m, param.omega,param.shift);
-	
+	blas_set_num_threads(param.MG.numCores);
 	if doTranspose==1
 		MShift = -MShift; # this is because of the conjugate
 		Hfun = getHelmholtzFun(ShiftedHT,MShift,param.MG.numCores);
