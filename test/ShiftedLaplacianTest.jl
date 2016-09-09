@@ -29,14 +29,14 @@ pad = 16;
 
 m = 1./m.^2
 
-f = 1.0;
+f = 2.0;
 w = 2*pi*f
 
 println("omega*h:");
 println(w*Minv.h*sqrt(maximum(m)));
 pad = pad*ones(Int64,Minv.dim);
 H = GetHelmholtzOperator(Minv,m,w,ones(size(m))*0.0001,true,pad,1.0,true)[1];
-shift = 0.15;
+shift = 0.2;
 SH = H + GetHelmholtzShiftOP(m, w,shift);
 n = Minv.n+1; n_tup = tuple(n...);
 src = div(n,2);
@@ -46,7 +46,7 @@ q[My_sub2ind(n,src)] = 1/(Minv.h[1]^2);
 
 levels      = 3;
 numCores 	= 8; 
-maxIter     = 50;
+maxIter     = 10;
 relativeTol = 1e-3;
 relaxType   = "SPAI";
 relaxParam  = 1.0;
@@ -59,7 +59,7 @@ MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
 				relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0,Minv)
 
 # Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"GMRES");
-Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"BiCGSTAB");
+Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"BiCGSTAB",true);
 Ainv = updateParam(Ainv,Minv,vec(m),w);
 
 ## Preparing a point shource RHS ############################
@@ -71,14 +71,37 @@ q[My_sub2ind(n,src)] = 1/(Minv.h[1]^2);
 ###############################################
 b = q[:];
 
+
+# x = solveLinearSystem(SH',b,Ainv)[1];
+
 tic()
 x = solveLinearSystem(SH',b,Ainv)[1];
 toc()
+
+
+################### WITHOUT THE COARSEST GRID SOL ########################
+coarseSolveType = "BiCGSTAB";
+MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
+				relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0,Minv)
+Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"BiCGSTAB",true);
+Ainv = updateParam(Ainv,Minv,vec(m),w);
+
+# y = solveLinearSystem(SH',b,Ainv)[1];
+tic()
+y = solveLinearSystem(SH',b,Ainv)[1];
+toc()
+
+println(norm(x-y))
+###########################################################################
+
+
+
 
 reX = real(reshape(x,n_tup));
 reX[My_sub2ind(n,src)] = 0.0;
 
 println(norm(q[:]-H*x)/norm(q[:]));
+println(norm(q[:]-H*y)/norm(q[:]));
 
 if plotting
 	figure();
