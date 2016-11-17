@@ -31,7 +31,7 @@ function updateParam(solver::ShiftedLaplacianMultigridSolver,M::RegularMesh,m::A
 end
 
 
-function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,doTranspose::Int=0)
+function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,doTranspose::Int64=0)
 	if size(B,2) == 1
 		B = vec(B);
 	end
@@ -75,7 +75,7 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 		X, param.MG,num_iter = solveBiCGSTAB_MG(Afun,param.MG,B,Array(eltype(B),0),param.verbose);
 	end
 
-	if num_iter >= param.MG.maxOuterIter - 1
+	if num_iter >= param.MG.maxOuterIter
 		warn("MG solver reached maximum iterations without convergence");
 	end
 

@@ -72,8 +72,6 @@ q[My_sub2ind(n,src)] = 1/(Minv.h[1]^2);
 b = q[:];
 
 
-# x = solveLinearSystem(SH',b,Ainv)[1];
-
 tic()
 x = solveLinearSystem(SH',b,Ainv)[1];
 toc()
@@ -91,7 +89,6 @@ tic()
 y = solveLinearSystem(SH',b,Ainv)[1];
 toc()
 
-println(norm(x-y))
 ###########################################################################
 
 
