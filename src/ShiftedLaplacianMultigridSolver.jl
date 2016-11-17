@@ -48,7 +48,7 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 
 	# build preconditioner
 	if hierarchyExists(param.MG)==false
-		MGsetup(ShiftedHT,param.MG,TYPE,nrhs,param.verbose);
+		MGsetup(ShiftedHT,param.M,param.MG,TYPE,nrhs,param.verbose);
 	end
 
 	if (doTranspose != param.MG.doTranspose)

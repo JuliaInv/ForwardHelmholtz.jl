@@ -2,14 +2,7 @@ using jInv.Mesh;
 using ForwardHelmholtz
 using Multigrid
 
-
-function My_sub2ind(n::Array{Int64},sub::Array{Int64})
-if length(sub)==2
-	return sub2ind(tuple(n...),sub[1],sub[2]);
-else
-	return sub2ind(tuple(n...),sub[1],sub[2],sub[3]);
-end
-end
+include("My_sub2ind.jl");
 
 plotting = false;
 
@@ -56,7 +49,7 @@ cycleType   ='W';
 coarseSolveType = "NoMUMPS";
 
 MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
-				relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0,Minv)
+				relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0)
 
 # Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"GMRES");
 Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"BiCGSTAB",true);
@@ -80,7 +73,7 @@ toc()
 ################### WITHOUT THE COARSEST GRID SOL ########################
 coarseSolveType = "BiCGSTAB";
 MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
-				relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0,Minv)
+				relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0)
 Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"BiCGSTAB",true);
 Ainv = updateParam(Ainv,Minv,vec(m),w);
 
