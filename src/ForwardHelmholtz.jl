@@ -4,7 +4,7 @@ module ForwardHelmholtz
 using jInv.Mesh;
 using Multigrid;
 using jInv.LinearSolvers
-import jInv.Utils.clear
+import jInv.Utils.clear!
 import jInv.LinearSolvers.AbstractSolver
 import jInv.LinearSolvers.solveLinearSystem
 
