@@ -7,7 +7,7 @@ using KrylovMethods
 using Base.Test
 
 
-function fictousSourceTest2D(u,m,w,rhs)
+function fictitiousSourceTest2D(u,m,w,rhs)
   refineMesh(M::RegularMesh) = (getRegularMesh(M.domain, M.n*2))
 
   M  = getRegularMesh([-1.0 1.0 -1.0 1.0],[32,48])
@@ -60,13 +60,13 @@ end
 # Constant slowness
 f = 1e-0;
 w = 2*pi*f;
-m(x,y) = ones(size(x));
-fictousSourceTest2D((x,y)->cos(pi*x).*cos(pi*y), m,w,
-      (x,y) -> (- pi.^2.*cos(pi*x).*cos(pi*y) - pi.^2.*cos(pi*x).*cos(pi*y) + m(x,y).*cos(pi*x).*cos(pi*y)*(w.^2)  ))
+slowsq(x,y) = ones(size(x));
+fictitiousSourceTest2D((x,y)->cos(pi*x).*cos(pi*y), slowsq,w,
+      (x,y) -> (- pi.^2.*cos(pi*x).*cos(pi*y) - pi.^2.*cos(pi*x).*cos(pi*y) + slowsq(x,y).*cos(pi*x).*cos(pi*y)*(w.^2)  ))
 
 # # VARYING SLOWNESS TEST
-m(x,y) = exp(-2.0*(x.^2 + y.^2));
-fictousSourceTest2D((x,y)->cos(pi*x).*cos(pi*y), m,w,
-      (x,y) -> (- pi.^2.*cos(pi*x).*cos(pi*y) - pi.^2.*cos(pi*x).*cos(pi*y) + m(x,y).*cos(pi*x).*cos(pi*y)*(w.^2)  ))
+slowsq(x,y) = exp(-2.0*(x.^2 + y.^2));
+fictitiousSourceTest2D((x,y)->cos(pi*x).*cos(pi*y), slowsq,w,
+      (x,y) -> (- pi.^2.*cos(pi*x).*cos(pi*y) - pi.^2.*cos(pi*x).*cos(pi*y) + slowsq(x,y).*cos(pi*x).*cos(pi*y)*(w.^2)  ))
 
 println("\t== passed ! ==")
