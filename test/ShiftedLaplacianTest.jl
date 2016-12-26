@@ -28,9 +28,12 @@ w = 2*pi*f
 println("omega*h:");
 println(w*Minv.h*sqrt(maximum(m)));
 pad = pad*ones(Int64,Minv.dim);
-H = GetHelmholtzOperator(Minv,m,w,ones(size(m))*0.0001,true,pad,1.0,true)[1];
+
+maxOmega = getMaximalFrequency(m,Minv);
+ABLamp = maxOmega;
+H = GetHelmholtzOperator(Minv,m,w,ones(size(m))*0.0001,true,pad,ABLamp,true)[1];
 shift = 0.2;
-SH = H + GetHelmholtzShiftOP(m, w,shift);
+SH = H + GetHelmholtzShiftOP(m, real(w),shift);
 n = Minv.n+1; n_tup = tuple(n...);
 src = div(n,2);
 src[end] = 1;
@@ -132,10 +135,3 @@ println(vecnorm(H'*y-b)/vecnorm(b));
 # x = solveLinearSystem(SH',b,Ainv)[1];
 # toc()
 # println(vecnorm(H*x - b)/vecnorm(b))
-
-
-
-
-
-
-

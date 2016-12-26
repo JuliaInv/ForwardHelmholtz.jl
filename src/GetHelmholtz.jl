@@ -1,7 +1,18 @@
 
-export GetHelmholtzOperator,GetHelmholtzOperator,GetHelmholtzShiftOP,getABL,getSommerfeldBC,getHelmholtzFun
+export GetHelmholtzOperator,GetHelmholtzOperator,GetHelmholtzShiftOP,getABL,getSommerfeldBC,getHelmholtzFun,getMaximalFrequency
 
-function GetHelmholtzOperator(Msh::RegularMesh, mNodal::Array{Float64}, omega::Float64, gamma::Array{Float64},
+"""
+function  GetHelmholtzOperator
+
+Constructor for the acoustic Helmholtz equation
+
+Special Fields:	
+omega can be real or complex for artificial attenuation. 
+Artificial attenuation through a complex omega keeps the phase fixed.
+gamma - True attenuation parameter, corresponding to the time domain equation:  u_tt + gamma*ut + c^2*L*u = q
+"""
+
+function GetHelmholtzOperator(Msh::RegularMesh, mNodal::Array{Float64}, omega::Union{Float64,Complex128}, gamma::Array{Float64},
 									NeumannAtFirstDim::Bool,ABLpad::Array{Int64},ABLamp::Float64,Sommerfeld::Bool)
 if gamma == []
 	gamma = getABL(Msh,NeumannAtFirstDim,ABLpad,ABLamp);
@@ -12,25 +23,33 @@ H = GetHelmholtzOperator(Msh, mNodal, omega, gamma, NeumannAtFirstDim,Sommerfeld
 return H,gamma
 end
 
-function GetHelmholtzOperator(Msh::RegularMesh, mNodal::Array{Float64}, omega::Float64, gamma::Array{Float64},
+function GetHelmholtzOperator(Msh::RegularMesh, mNodal::Array{Float64}, omega::Union{Float64,Complex128}, gamma::Array{Float64},
 							  NeumannAtFirstDim::Bool,Sommerfeld::Bool)
 Lap   = getNodalLaplacianMatrix(Msh);
 # this code computes a laplacian the long way, AND stores the gradient on Msh... So we avoid using it.
 # Grad  = getNodalGradientMatrix(Msh) 
 # Lap   = Grad'*Grad
 
-mass = ((-omega^2).*(mNodal[:]).*(1+1im*gamma[:]));
+# mass = -((omega.^2).*(mNodal[:]).*(1.0+1im*gamma[:]));
+mass = -(omega.^2).*(mNodal[:]).*(1.0-1im*gamma[:]./real(omega));
+
 if Sommerfeld
 	# println("Adding Sommerfeld");
-	somm = getSommerfeldBC(Msh,mNodal,omega,NeumannAtFirstDim);
-	mass += somm[:];
+	somm = getSommerfeldBC(Msh,mNodal,real(omega),NeumannAtFirstDim);
+	mass -= somm[:];
 end
 H = Lap + spdiagm(mass);
 return H;
 end
 
+
+function getMaximalFrequency(m::Union{Array{Float64},Float64},M::RegularMesh)
+omegamax = (0.1*2*pi)./(maximum(M.h)*sqrt(maximum(m)));
+return omegamax;
+end
+
 function GetHelmholtzShiftOP(mNodal::Array{Float64}, omega::Float64,shift::Float64)
-return spdiagm(-mNodal[:].*(1im*shift*omega^2));
+return spdiagm(mNodal[:].*(1im*shift*omega^2));
 end
 
 
