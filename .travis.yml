@@ -15,6 +15,7 @@ before_install:
    - julia -e 'Pkg.clone("https://github.com/JuliaInv/jInv.jl","jInv"); Pkg.build("jInv");'
    - julia -e 'Pkg.clone("https://github.com/JuliaInv/DivSigGrad.jl","DivSigGrad"); Pkg.build("DivSigGrad");'
    - julia -e 'Pkg.clone("https://github.com/JuliaInv/Multigrid.jl","Multigrid"); Pkg.build("Multigrid");'
+   - julia -e 'Pkg.clone("https://github.com/JuliaInv/FactoredEikonalFastMarching.jl.git","FactoredEikonalFastMarching"); Pkg.build("FactoredEikonalFastMarching");'
    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 
 script:
