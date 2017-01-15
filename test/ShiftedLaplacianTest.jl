@@ -12,7 +12,7 @@ if plotting
 end
 
 # m = readdlm("SEGmodel2Dsalt.dat"); m = m'; m = m*1e-3;
-m = 1.5*ones(256,128);
+m = 1.5*ones(257,129);
 
 
 Minv = getRegularMesh([0.0,13.5,0.0,4.2],collect(size(m))-1);
@@ -22,7 +22,8 @@ pad = 16;
 
 m = 1./m.^2
 
-f = 2.0;
+f = 2.5;
+
 w = 2*pi*f
 
 println("omega*h:");
@@ -31,9 +32,18 @@ pad = pad*ones(Int64,Minv.dim);
 
 maxOmega = getMaximalFrequency(m,Minv);
 ABLamp = maxOmega;
-H = GetHelmholtzOperator(Minv,m,w,ones(size(m))*0.0001,true,pad,ABLamp,true)[1];
-shift = 0.2;
-SH = H + GetHelmholtzShiftOP(m, real(w),shift);
+
+
+Sommerfeld = true;
+NeumannAtFirstDim = true;
+SH = 0;
+H,gamma = GetHelmholtzOperator(Minv,m,w,w*ones(size(m))*0.01,NeumannAtFirstDim,pad,ABLamp,Sommerfeld);
+shift = [0.15;0.15;0.15;0.1];
+
+SH = H + GetHelmholtzShiftOP(m, real(w),shift[1]);
+
+
+
 n = Minv.n+1; n_tup = tuple(n...);
 src = div(n,2);
 src[end] = 1;
@@ -41,11 +51,12 @@ q = zeros(Complex,n_tup)
 q[My_sub2ind(n,src)] = 1/(Minv.h[1]^2);
 
 levels      = 3;
-numCores 	= 8; 
-maxIter     = 10;
-relativeTol = 1e-3;
-relaxType   = "SPAI";
-relaxParam  = 1.0;
+numCores 	= 2; 
+maxIter     = 2;
+relativeTol = 1e-2;
+relaxType   = "Jac-GMRES";
+# relaxType   = "Jac";
+relaxParam  = 0.8;
 relaxPre 	= 2;
 relaxPost   = 2;
 cycleType   ='W';
@@ -54,10 +65,8 @@ coarseSolveType = "NoMUMPS";
 MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
 				relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0)
 
-# Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"GMRES");
-Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"BiCGSTAB",true);
-Ainv = updateParam(Ainv,Minv,vec(m),w);
 
+				
 ## Preparing a point shource RHS ############################
 n = Minv.n+1; n_tup = tuple(n...);
 src = div(n,2);
@@ -66,50 +75,62 @@ q = zeros(Complex128,n_tup)
 q[My_sub2ind(n,src)] = 1/(Minv.h[1]^2);
 ###############################################
 b = q[:];
+			
 
+Hparam = HelmholtzParam(Minv,gamma,vec(m),w,NeumannAtFirstDim,Sommerfeld);
+Ainv = getShiftedLaplacianMultigridSolver(Hparam, MG,shift,"GMRES",5,true);
+Ainv = copySolver(Ainv);
+
+
+
+tic()
+x = solveLinearSystem(SH',b,Ainv)[1];
+toc()
+MG.relaxType = "Jac";
+MG.cycleType = 'W';
+Ainv = getShiftedLaplacianMultigridSolver(Hparam, MG,shift,"BiCGSTAB",0,true);
 
 tic()
 x = solveLinearSystem(SH',b,Ainv)[1];
 toc()
 
 
-################### WITHOUT THE COARSEST GRID SOL ########################
+# error("ET");
+################## WITHOUT THE COARSEST GRID SOL ########################
 coarseSolveType = "BiCGSTAB";
 MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
 				relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0)
-Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"BiCGSTAB",true);
-Ainv = updateParam(Ainv,Minv,vec(m),w);
+Ainv = getShiftedLaplacianMultigridSolver(Hparam, MG,shift,"BiCGSTAB",0,true);
 
-# y = solveLinearSystem(SH',b,Ainv)[1];
-tic()
+
 y = solveLinearSystem(SH',b,Ainv)[1];
-toc()
+
 
 ###########################################################################
 
 
 
 
-reX = real(reshape(x,n_tup));
-reX[My_sub2ind(n,src)] = 0.0;
+# reX = real(reshape(x,n_tup));
+# reX[My_sub2ind(n,src)] = 0.0;
 
-println(norm(q[:]-H*x)/norm(q[:]));
-println(norm(q[:]-H*y)/norm(q[:]));
+# println(norm(q[:]-H*x)/norm(q[:]));
+# println(norm(q[:]-H*y)/norm(q[:]));
 
-if plotting
-	figure();
-	imshow(reX');title("Helmholtz Iterative Solution");
-end
+# if plotting
+	# figure();
+	# imshow(reX');title("Helmholtz Iterative Solution");
+# end
 
-s = H\q[:];
+# s = H\q[:];
 
-s = real(reshape(s,n_tup));
-s[My_sub2ind(n,src)] = 0.0;
+# s = real(reshape(s,n_tup));
+# s[My_sub2ind(n,src)] = 0.0;
 
-if plotting
-	figure();
-	imshow(s');title("Helmholtz True Solution");
-end
+# if plotting
+	# figure();
+	# imshow(s');title("Helmholtz True Solution");
+# end
 
 println("Doing Transpose")
 y = zeros(Complex128,size(b));
@@ -117,21 +138,22 @@ y = solveLinearSystem(speye(3),b,Ainv,1)[1];
 
 println(vecnorm(H'*y-b)/vecnorm(b));
 
+# error("ET")
+println("SOLVING MULTIPLE RHSs")
+nrhs = 2;
+b = rand(Complex128,length(b),nrhs);
+clear!(Ainv);
+Ainv.helmParam = Hparam;
+tic()
+x = solveLinearSystem(SH',b,Ainv)[1];
+toc()
+println(vecnorm(H*x - b)/vecnorm(b))
 
-# println("SOLVING MULTIPLE RHSs")
-# nrhs = 16;
-# b = rand(Complex128,length(b),nrhs);
-# HelmholtzForward.clear!(Ainv);
-# Ainv = updateParam(Ainv,Minv,vec(m),w);
-# tic()
-# x = solveLinearSystem(SH',b,Ainv)[1];
-# toc()
-# println(vecnorm(H*x - b)/vecnorm(b))
-
-# MG = getMGparam(levels,numCores,maxIter,innerIter,relativeTol,relaxType,relaxParam,relaxPre,relaxPost,cycleType,coarseSolveType);
-# Ainv = getShiftedLaplacianMultigridSolver(Minv, MG,shift,"GMRES");
-# Ainv = updateParam(Ainv,Minv,vec(m),w);
-# tic()
-# x = solveLinearSystem(SH',b,Ainv)[1];
-# toc()
-# println(vecnorm(H*x - b)/vecnorm(b))
+MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,relaxPre,relaxPost,cycleType,coarseSolveType);
+MG.relaxType = "Jac-GMRES";
+MG.cycleType = 'K';
+Ainv = getShiftedLaplacianMultigridSolver(Hparam, MG,shift,"GMRES",5,true);
+tic()
+x = solveLinearSystem(SH',b,Ainv)[1];
+toc()
+println(vecnorm(H*x - b)/vecnorm(b))

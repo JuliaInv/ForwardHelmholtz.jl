@@ -1,5 +1,5 @@
 
-export GetHelmholtzOperator,GetHelmholtzOperator,GetHelmholtzShiftOP,getABL,getSommerfeldBC,getHelmholtzFun,getMaximalFrequency
+export GetHelmholtzOperator,GetHelmholtzOperator,GetHelmholtzShiftOP,GetHelmholtzShiftOPNew,GetHelmholtzShiftOPNew2,getABL,getSommerfeldBC,getHelmholtzFun,getMaximalFrequency
 
 """
 function  GetHelmholtzOperator
@@ -50,6 +50,15 @@ end
 
 function GetHelmholtzShiftOP(mNodal::Array{Float64}, omega::Float64,shift::Float64)
 return spdiagm(mNodal[:].*(1im*shift*omega^2));
+end
+
+function GetHelmholtzShiftOPNew(mNodal::Array{Float64}, omega::Float64,shift::Float64)
+return spdiagm(mNodal[:].*(1im*shift + 0.25*shift^2)*omega^2);
+end
+
+function GetHelmholtzShiftOPNew2(mNodal::Array{Float64}, omega::Float64,shift::Float64)
+theta = asin(shift);
+return spdiagm(mNodal[:].*(-exp(-1im*theta)+1.0)*omega^2);
 end
 
 

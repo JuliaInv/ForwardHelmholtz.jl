@@ -29,6 +29,13 @@ return L;
 end
 
 
+
+##
+## [0  x2  0]
+## [x4 x1 x5]
+## [0  x3 0]
+
+
 function Lap2DStencil(x1::Float64,x2::Float64,x3::Float64,x4::Float64,x5::Float64,h1invsq::Float64,h2invsq::Float64)
 	return (2*h1invsq + 2*h2invsq)*x1 - h1invsq*(x2 + x3) - h2invsq*(x4 + x5);
 end
@@ -69,6 +76,40 @@ else
 end
 end
 
+function multOpDirichlet!(M::RegularMesh,x::Array,y::Array,op::Function)
+n = M.n;
+
+if M.dim==2
+	n1 = n[1]+1;
+	n2 = n[2]+1;
+	h1invsq = 1./(M.h[1]^2);
+	h2invsq = 1./(M.h[2]^2);
+	@inbounds y[1] = op(x[1],0.0,x[2],0.0,x[n1+1],h1invsq,h2invsq);
+	@simd for i=2:n1-1
+		@inbounds y[i] = op(x[i],x[i-1],x[i+1],0.0,x[i+n1],h1invsq,h2invsq);
+	end
+	@inbounds y[n1] = op(x[n1],x[n1-1],0.0,0.0,x[n1 + n1],h1invsq,h2invsq);
+	for j=2:n2-1
+		colShift = n1*(j-1);
+		i = 1 + colShift;
+		@inbounds y[i] = op(x[i],0.0,x[i+1],x[i-n1],x[i+n1],h1invsq,h2invsq);
+		@simd for i = (2 + colShift):(n1-1 + colShift) 
+			@inbounds y[i] = op(x[i],x[i-1],x[i+1],x[i-n1],x[i+n1],h1invsq,h2invsq);
+		end
+		i = n1 + colShift;
+		@inbounds y[i] = op(x[i],x[i-1],0.0,x[i-n1],x[i+n1],h1invsq,h2invsq);
+	end
+	colShift = n1*(n2-1);
+	i = 1 + colShift;
+	@inbounds y[i] = op(x[i],0.0,x[i+1],x[i-n1],0.0,h1invsq,h2invsq);
+	@simd for i = (2 + colShift):(n1-1 + colShift)
+		@inbounds y[i] = op(x[i],x[i-1],x[i+1],x[i-n1],0.0,h1invsq,h2invsq);
+	end
+	i = n1 + colShift;
+	@inbounds y[i] = op(x[i],x[i-1],0.0,x[i-n1],0.0,h1invsq,h2invsq);
+else
+end
+end
 
 
 

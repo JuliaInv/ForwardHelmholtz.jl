@@ -3,7 +3,7 @@ using ForwardHelmholtz
 import FactoredEikonalFastMarching.getAnalytic2DeikonalSolution
 #import EikonalInv.expandModelNearest
 #import EikonalInv.addAbsorbingLayer
-plotting = false;
+plotting = true;
 if plotting
 	using PyPlot;
 	close("all");
@@ -32,7 +32,7 @@ a = 1./(sqrt(r+Minv.h[1]));
 s_analytic = real(exp(1im*pi/4).*a.*exp(1im*w.*m.*r));
 
 
-alpha = 0.1*2*pi;
+alpha = 0.5*2*pi;
 maxOmega = getMaximalFrequency(m,Minv);
 ABLamp = maxOmega;
 
