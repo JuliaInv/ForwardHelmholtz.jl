@@ -132,7 +132,7 @@ for l = 1:(param.levels-1)
 		error("Unknown relaxation type !!!!");
 	end
 	
-	(P,nc) = getFWInterp(n,true);
+	(P,nc) = getFWInterp(n,false);
 	if (size(P,1)==size(P,2))
 		if verbose; println(string("Stopped Coarsening at level ",l)); end
 		param.levels = l;
