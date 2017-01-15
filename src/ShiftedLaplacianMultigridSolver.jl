@@ -53,8 +53,9 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 
 	if (doTranspose != param.MG.doTranspose)
 		transposeHierarchy(param.MG);
-		
 	end
+	
+	adjustMemoryForNumRHS(param.MG,TYPE,size(B,2),param.verbose)
 	BLAS.set_num_threads(param.MG.numCores);
 	ShiftedHT = param.MG.As[1];
 	Az = param.MG.memCycle[1].b;
@@ -64,7 +65,7 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 		if doTranspose==1
 			MShift = -MShift; # this is because of the conjugate
 			Hfun = getHelmholtzFun(ShiftedHT,MShift,param.MG.numCores);
-			println("doTranspose")
+			# println("doTranspose")
 		else
 			Hfun = getHelmholtzFun(ShiftedHT,MShift,param.MG.numCores);
 		end
