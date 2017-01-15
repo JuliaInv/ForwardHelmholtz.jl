@@ -3,7 +3,7 @@ using ForwardHelmholtz
 import FactoredEikonalFastMarching.getAnalytic2DeikonalSolution
 #import EikonalInv.expandModelNearest
 #import EikonalInv.addAbsorbingLayer
-plotting = true;
+plotting = false;
 if plotting
 	using PyPlot;
 	close("all");
