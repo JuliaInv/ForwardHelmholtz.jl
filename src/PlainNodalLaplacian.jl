@@ -1,13 +1,16 @@
-export getNodalLaplacianMatrix, multOpNeumann!, Lap2DStencil
+export getNodalLaplacianMatrix, multOpNeumann!, Lap2DStencil,dxxMat,BC
+function BC()
+	return 2.0; # one is for first order Neumann, and 2 is for 2nd order. Note that with 2, the matrix is not symmetric!!!
+end
+
 function dxxMat(n::Int64,h::Float64)
-BC = 1.0; # one is for first order Neumann, and 2 is for 2nd order. Note that with 2, the matrix is not symmetric!!!
 O1 = -ones(n-1);
-O1[n-1] = -BC;
+O1[n-1] = -BC();
 O2 = 2.0*ones(n);
-O2[1] = BC;
-O2[n] = BC;
+O2[1] = BC();
+O2[n] = BC();
 O3 = -ones(n-1);
-O3[1] = -BC;
+O3[1] = -BC();
 dxx = spdiagm((O1/(h^2),O2/(h^2),O3/(h^2)),[-1,0,1],n,n);
 return dxx;
 end

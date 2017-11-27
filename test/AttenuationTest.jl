@@ -22,14 +22,14 @@ fmax = 2.5;
 f = fmax;
 w = 2*pi*f
 
-src = div(n,2);
+src = div.(n,2);
 q = zeros(Complex128,n_tup)
 q[My_sub2ind(n,src)] = 1/(Minv.h[1]^2);
 
 
 r = getAnalytic2DeikonalSolution(n,Minv.h,src)[1];
-a = 1./(sqrt(r+Minv.h[1]));
-s_analytic = real(exp(1im*pi/4).*a.*exp(1im*w.*m.*r));
+a = 1./(sqrt.(r+Minv.h[1]));
+s_analytic = real(exp.(1im*pi/4).*a.*exp.(1im*w.*m.*r));
 
 
 alpha = 0.5*2*pi;
@@ -52,7 +52,7 @@ s2 = real(reshape(s2,n_tup));
 
 
 s_analytic = s_analytic./maximum(s_analytic);
-s_analytic.*=exp(-(alpha/2).*m.*r)
+s_analytic.*=exp.(-(alpha/2).*m.*r)
 s_analytic.*=maximum(s1);
 
 if plotting

@@ -1,7 +1,7 @@
 # using PyPlot
 # close("all")
 using jInv.Mesh
-using jInv.Vis
+using jInvVis
 using ForwardHelmholtz
 using KrylovMethods
 using Base.Test
@@ -61,12 +61,12 @@ end
 f = 1e-0;
 w = 2*pi*f;
 slowsq(x,y) = ones(size(x));
-fictitiousSourceTest2D((x,y)->cos(pi*x).*cos(pi*y), slowsq,w,
-      (x,y) -> (- pi.^2.*cos(pi*x).*cos(pi*y) - pi.^2.*cos(pi*x).*cos(pi*y) + slowsq(x,y).*cos(pi*x).*cos(pi*y)*(w.^2)  ))
+fictitiousSourceTest2D((x,y)->cos.(pi*x).*cos.(pi*y), slowsq,w,
+      (x,y) -> (- pi.^2.*cos.(pi*x).*cos.(pi*y) - pi.^2.*cos.(pi*x).*cos.(pi*y) + slowsq(x,y).*cos.(pi*x).*cos.(pi*y)*(w.^2)  ))
 
 # # VARYING SLOWNESS TEST
-slowsq(x,y) = exp(-2.0*(x.^2 + y.^2));
-fictitiousSourceTest2D((x,y)->cos(pi*x).*cos(pi*y), slowsq,w,
-      (x,y) -> (- pi.^2.*cos(pi*x).*cos(pi*y) - pi.^2.*cos(pi*x).*cos(pi*y) + slowsq(x,y).*cos(pi*x).*cos(pi*y)*(w.^2)  ))
+slowsq(x,y) = exp.(-2.0*(x.^2 + y.^2));
+fictitiousSourceTest2D((x,y)->cos.(pi*x).*cos.(pi*y), slowsq,w,
+      (x,y) -> (- pi.^2.*cos.(pi*x).*cos.(pi*y) - pi.^2.*cos.(pi*x).*cos.(pi*y) + slowsq(x,y).*cos.(pi*x).*cos.(pi*y)*(w.^2)  ))
 
 println("\t== passed ! ==")

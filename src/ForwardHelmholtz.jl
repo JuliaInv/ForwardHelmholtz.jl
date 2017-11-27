@@ -3,13 +3,14 @@ module ForwardHelmholtz
 
 using jInv.Mesh;
 using Multigrid;
+
 using jInv.LinearSolvers
 import jInv.Utils.clear!
 import jInv.LinearSolvers.AbstractSolver
 import jInv.LinearSolvers.solveLinearSystem
 
 
-export HelmholtzParam
+export HelmholtzParam,getShiftedHelmholtzParam
 type HelmholtzParam
 	Mesh   			:: RegularMesh;
 	gamma  			:: Array{Float64};
@@ -29,8 +30,15 @@ function clear!(HP::HelmholtzParam)
 	omega = 0.0;
 end
 
+function getShiftedHelmholtzParam(p::HelmholtzParam,s::Float64)
+	return HelmholtzParam(p.Mesh,p.gamma + s*real(p.omega), p.m,p.omega,p.NeumannOnTop,p.Sommerfeld);
+end
+
+
 include("GetHelmholtz.jl");
 
 include("PlainNodalLaplacian.jl");
 include("ShiftedLaplacianMultigridSolver.jl");
+#include("PointSourceADR/PointSourceADR.jl");
+#include("Elastic/ElasticHelmholtz.jl");
 end

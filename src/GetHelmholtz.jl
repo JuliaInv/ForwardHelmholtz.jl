@@ -1,5 +1,5 @@
 
-export GetHelmholtzOperator,GetHelmholtzOperator,GetHelmholtzShiftOP,GetHelmholtzShiftOPNew,GetHelmholtzShiftOPNew2,getABL,getSommerfeldBC,getHelmholtzFun,getMaximalFrequency
+export GetHelmholtzOperator,GetHelmholtzOperator,GetHelmholtzShiftOP,getABL,getSommerfeldBC,getHelmholtzFun,getMaximalFrequency
 
 """
 function  GetHelmholtzOperator
@@ -12,7 +12,7 @@ Artificial attenuation through a complex omega keeps the phase fixed.
 gamma - True attenuation parameter, corresponding to the time domain equation:  u_tt + gamma*ut + c^2*L*u = q
 """
 
-function GetHelmholtzOperator(Msh::RegularMesh, mNodal::Array{Float64}, omega::Union{Float64,Complex128}, gamma::Array{Float64},
+function GetHelmholtzOperator(Msh::RegularMesh, mNodal::Array{Float64}, omega::Union{Float64,Complex128}, gamma::Array,
 									NeumannAtFirstDim::Bool,ABLpad::Array{Int64},ABLamp::Float64,Sommerfeld::Bool)
 if gamma == []
 	gamma = getABL(Msh,NeumannAtFirstDim,ABLpad,ABLamp);
@@ -43,7 +43,8 @@ return H;
 end
 
 
-function getMaximalFrequency(m::Union{Array{Float64},Float64},M::RegularMesh)
+function getMaximalFrequency(m::Union{Array{Float64},Array{Float32},Float64},M::RegularMesh)
+## m here is in slowness squared
 omegamax = (0.1*2*pi)./(maximum(M.h)*sqrt(maximum(m)));
 return omegamax;
 end
@@ -52,22 +53,13 @@ function GetHelmholtzShiftOP(mNodal::Array{Float64}, omega::Float64,shift::Float
 return spdiagm(mNodal[:].*(1im*shift*omega^2));
 end
 
-function GetHelmholtzShiftOPNew(mNodal::Array{Float64}, omega::Float64,shift::Float64)
-return spdiagm(mNodal[:].*(1im*shift + 0.25*shift^2)*omega^2);
-end
-
-function GetHelmholtzShiftOPNew2(mNodal::Array{Float64}, omega::Float64,shift::Float64)
-theta = asin(shift);
-return spdiagm(mNodal[:].*(-exp(-1im*theta)+1.0)*omega^2);
-end
-
-
-function getHelmholtzFun(ShiftedHelmholtT::SparseMatrixCSC,ShiftMat::SparseMatrixCSC,numCores::Int64)
-function Hfun(alpha,x,beta,y)
-		# # here we avoid the storage of the Helmholtz matrix by using the shifted matrix minus the shift.
+function getHelmholtzFun(ShiftedHelmholtT::SparseMatrixCSC,ShiftMat::SparseMatrixCSC,y::ArrayTypes,numCores::Int64)
+function Hfun(x)
+		# # here we avoid the storage of the Helmholtz matrix by using the shifted matrix plus the shift.
+		Zero = zero(Complex128);
 		One = one(Complex128);
-		SpMatMul(alpha,ShiftedHelmholtT,x,beta,y,numCores);
-		SpMatMul(alpha,ShiftMat,x,One,y,numCores);
+		SpMatMul(One,ShiftedHelmholtT,x,Zero,y,numCores);
+		SpMatMul(One,ShiftMat,x,One,y,numCores);
 		return y;
 end
 return Hfun;
@@ -170,25 +162,21 @@ mNodal = reshape(mNodal,ntup);
 h = Msh.h;
 
 if Msh.dim==2
-	if NeumannOnTop
-		Somm[2:end-1,1] = 0.0;
-	else
-		Somm[2:end-1,1] = -1im*omega*(1/h[2]).*sqrt(mNodal[2:end-1,1]);
+	if !NeumannOnTop
+		Somm[:,1] += -1im*omega*(BC()/h[2]).*sqrt.(mNodal[:,1]);
 	end
-	Somm[1:end,end] = (-1im*omega*(1/h[2])).*sqrt(mNodal[1:end,end]);
-	Somm[end,:] += (-1im*omega*(1/h[1])).*sqrt(mNodal[end,:]);
-	Somm[1,:] += (-1im*omega*(1/h[1])).*sqrt(mNodal[1,:]);
+	Somm[:,end] += (-1im*omega*(BC()/h[2])).*sqrt.(mNodal[1:end,end]);
+	Somm[end,:] += (-1im*omega*(BC()/h[1])).*sqrt.(mNodal[end,:]);
+	Somm[1,:] += (-1im*omega*(BC()/h[1])).*sqrt.(mNodal[1,:]);
 else
-	Somm[2:end-1,2:end-1,2:end-1] = 0.0;
-	if NeumannOnTop
-		Somm[2:end-1,2:end-1,1] = 0.0;
-	else
-		Somm[2:end-1,2:end-1,1] .* -1im*omega*(2/h[3]);
+	if !NeumannOnTop
+		Somm[:,:,1] += -1im*omega*(BC()/h[3]).*sqrt.(mNodal[:,:,1]);
 	end
-	Somm[:,1,:] .* -1im*omega*(2/h[2]);
-	Somm[:,end,:] .* -1im*omega*(2/h[2]);
-	Somm[1,:,:] .* -1im*omega*(2/h[1]);
-	Somm[end,:,:] .* -1im*omega*(2/h[1]);
+	Somm[:,:,end] += -1im*omega*(BC()/h[3]).*sqrt.(mNodal[:,:,end]);
+	Somm[:,1,:] += -1im*omega*(BC()/h[2]).*sqrt.(mNodal[:,1,:]);
+	Somm[:,end,:] += -1im*omega*(BC()/h[2]).*sqrt.(mNodal[:,end,:]);
+	Somm[1,:,:] += -1im*omega*(BC()/h[1]).*sqrt.(mNodal[1,:,:]);
+	Somm[end,:,:] += -1im*omega*(BC()/h[1]).*sqrt.(mNodal[end,:,:]);
 end
 return Somm;
 end
