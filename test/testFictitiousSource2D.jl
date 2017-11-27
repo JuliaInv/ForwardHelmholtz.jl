@@ -1,7 +1,6 @@
 # using PyPlot
 # close("all")
 using jInv.Mesh
-using jInvVis
 using ForwardHelmholtz
 using KrylovMethods
 using Base.Test
