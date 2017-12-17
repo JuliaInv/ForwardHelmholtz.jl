@@ -39,6 +39,6 @@ include("GetHelmholtz.jl");
 
 include("PlainNodalLaplacian.jl");
 include("ShiftedLaplacianMultigridSolver.jl");
-#include("PointSourceADR/PointSourceADR.jl");
+include("PointSourceADR/PointSourceADR.jl");
 #include("Elastic/ElasticHelmholtz.jl");
 end

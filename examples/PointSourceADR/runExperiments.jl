@@ -178,14 +178,6 @@ if formulation == 1 # Pure Helmholtz
 	
 	println("Total setup = ", set1 + set2 );
 	println("Total sol = ", sol1 );
-elseif formulation == 3 # Exact ADR short as prec to ADR long
-	# (ADR_long,ADR_short,T) = getHelmholtzADR(true, Minv, m, w, gamma,NeumannAtFirstDim,pad,ABLamp,src,true);
-	# ADR_short = lufact(ADR_short + ADR_long);
-	# println("FGMRES-MG")
-	# prec = r-> ADR_short\r;
-	# x = FGMRES(ADR_long',copy(q),zeros(eltype(q),size(q)),60,prec,1e-6,true,true,8)[1];
-	# # x = KrylovMethods.bicgstb(HT, q; tol=1e-6, maxIter=100, M1=prec, out=2)[1];
-	# println(norm(ADR_long*x - q)/norm(q))
 elseif formulation == 4 # ADR long up
 	println("problem disc.")
 	gamma += getABL(Minv,NeumannAtFirstDim,pad,ABLamp);
@@ -244,10 +236,8 @@ elseif formulation == 4 # ADR long up
 elseif formulation == 5 # ADR long shifted as prec to ADR long
 	# (ADR_long,ADR_short,T) = getHelmholtzADR(true,Minv, m, w, gamma,NeumannAtFirstDim,pad,ABLamp,src,true);
 	# Shift = Shift'
-	
 	# M = exp(-1im*w*T);
 	# ADR_long = (spdiagm(M)*ADR_long*spdiagm(1./M));
-	
 	# SHT = ADR_long' + Shift;ADR_long = 0.0;
 	# MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
 				# relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0,"FullWeighting");
@@ -256,17 +246,7 @@ elseif formulation == 5 # ADR long shifted as prec to ADR long
 	# println("FGMRES-MG")
 	# x = solveGMRES_MG(HT,MG,q,zeros(eltype(q),size(q)),true,5)[1]
 	# println(norm(HT(x) - q)/norm(q))
-elseif formulation == 7 # Exact ADR long shifted as prec to ADR long
-	(ADR_long,~,T) = getHelmholtzADR(true,Minv, m, w, gamma,NeumannAtFirstDim,src,true);
-	MM = lufact(ADR_long + Shift);
-	println("FGMRES-MG")
-	prec = r-> MM\r;
-	# x = FGMRES(ADR_long,copy(q),zeros(eltype(q),size(q)),30,prec,1e-6,true,true,8)[1];
-	x = KrylovMethods.bicgstb(ADR_long, q; tol=1e-12, maxIter=100, M1=prec, out=2)[1];
-	# println(norm(ADR_long*x - q)/norm(q))
-elseif formulation == 8
-
-
+elseif formulation == 8 # two-phase solution.
 	# println("problem disc.")
 	gamma += getABL(Minv,NeumannAtFirstDim,pad,ABLamp);
 	# #############################################################
