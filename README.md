@@ -5,8 +5,9 @@
 A package for defining and solving the Helmholtz equation using the shifted Laplacian multigrid solver. 
 This is done using the geometric MG version in Multigrid.jl.
 
-This package was used in the following paper for solving the Helmholtz equation for multiple right-hand-sides (Section 4 and 5.3):
-Eran Treister and Eldad Haber, Full waveform inversion guided by travel time tomography, SIAM Journal on Scientific Computing, 39 (5), S587-S609, 2017. 
+This package is used in the following paper for solving the Helmholtz equation for multiple right-hand-sides (see Section 4 and 5.3):
+
+Eran Treister and Eldad Haber, Full waveform inversion guided by travel time tomography, SIAM Journal on Scientific Computing, 39 (5), S587-S609, 2017.
 
 # Requirements
 
