@@ -31,6 +31,7 @@ See //examples.
 # PointSourceADR sub-package
 
 Also available in this package is the sub-package `ForwardHelmholtz.PointSourceADR` for the solution of the Helmholtz equation for a point source, as described in the paper:
+
 Eran Treister, Eldad Haber, A multigrid solver to the Helmholtz equation with a point source based on travel time and amplitude.
 
 To use this sub-package type `using ForwardHelmholtz.PointSorceADR`. This sub-package also requires the FactoredEikonalFastMarching package, which can be installed by `Pkg.clone("https://github.com/JuliaInv/FactoredEikonalFastMarching.jl","FactoredEikonalFastMarching")`
