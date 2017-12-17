@@ -5,9 +5,14 @@
 A package for defining and solving the Helmholtz equation using the shifted Laplacian multigrid solver. 
 This is done using the geometric MG version in Multigrid.jl.
 
+Also available in this package is the solution for the Helmholtz equation for a point source, as described in the paper
+
+Eran Treister, Eldad Haber, A multigrid solver to the Helmholtz equation with a point source based on travel time and amplitude.
+
+
 # Requirements
 
-This package is intended to use with julia versions 0.4.x.
+This package is intended to use with julia versions 0.6.x.
 
 This package is an add-on for [`jInv`](https://github.com/JuliaInv/jInv.jl), which needs to be installed. 
 
